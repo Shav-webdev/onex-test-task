@@ -1,6 +1,6 @@
 import { searchParamsCache, PAGE_SIZE } from '@/shared/lib/search-params';
-import { serverTrpc, HydrateClient } from './_trpc/server';
-import { UsersPage } from '@/pages/users';
+import { getServerCaller } from '@/server';
+import { UsersView } from './_components/UsersView';
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -9,7 +9,7 @@ type PageProps = {
 export default async function Page({ searchParams }: PageProps) {
   const params = searchParamsCache.parse(await searchParams);
 
-  await serverTrpc.users.list.prefetch({
+  const { users, total, pageCount } = await getServerCaller().users.list({
     page: params.page,
     sortBy: params.sortBy,
     sortDir: params.sortDir,
@@ -17,9 +17,5 @@ export default async function Page({ searchParams }: PageProps) {
     limit: PAGE_SIZE,
   });
 
-  return (
-    <HydrateClient>
-      <UsersPage />
-    </HydrateClient>
-  );
+  return <UsersView users={users} total={total} pageCount={pageCount} />;
 }

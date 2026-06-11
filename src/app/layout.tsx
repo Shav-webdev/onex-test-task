@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { Toaster } from 'sonner';
 import { TRPCProvider } from './_trpc/provider';
+import { ThemeProvider } from './_providers/ThemeProvider';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const jakarta = Plus_Jakarta_Sans({
+  variable: '--font-sans',
   subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
 });
 
 const geistMono = Geist_Mono({
@@ -25,12 +28,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${jakarta.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-gray-50">
-        <NuqsAdapter>
-          <TRPCProvider>{children}</TRPCProvider>
-        </NuqsAdapter>
+      <body className="min-h-full flex flex-col bg-background">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <NuqsAdapter>
+            <TRPCProvider>{children}</TRPCProvider>
+          </NuqsAdapter>
+          <Toaster richColors closeButton />
+        </ThemeProvider>
       </body>
     </html>
   );

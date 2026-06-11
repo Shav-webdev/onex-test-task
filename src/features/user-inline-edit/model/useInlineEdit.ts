@@ -1,70 +1,52 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { trpc, type RouterInputs } from '@/shared/api/trpc-react';
+import { toast } from 'sonner';
+import { trpc } from '@/shared/api/trpc-react';
 import type { User } from '@/entities/user';
 
-type UsersListInput = RouterInputs['users']['list'];
-
-export function useInlineEdit(user: User, queryInput: UsersListInput) {
-  const utils = trpc.useUtils();
-
+export function useInlineEdit(user: User) {
+  const [displayEmail, setDisplayEmail] = useState(user.email);
   const [editValue, setEditValue] = useState(user.email);
   const [isEditing, setIsEditing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const prevValueRef = useRef(user.email);
+  const prevEmailRef = useRef(user.email);
 
-  // Stay in sync with external data changes (e.g. after invalidation)
+  // Sync display when server returns fresh user data (navigation)
   useEffect(() => {
-    if (!isEditing) setEditValue(user.email);
-  }, [user.email, isEditing]);
+    if (!isEditing) {
+      setDisplayEmail(user.email);
+      setEditValue(user.email);
+    }
+  }, [user.id, user.email, isEditing]);
 
   const mutation = trpc.users.update.useMutation({
-    onMutate: async (updated) => {
-      prevValueRef.current = user.email;
-      await utils.users.list.cancel(queryInput);
-      const prev = utils.users.list.getData(queryInput);
-
-      utils.users.list.setData(queryInput, (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          users: old.users.map((u) =>
-            u.id === updated.id ? { ...u, email: updated.email } : u,
-          ),
-        };
-      });
-
-      return { prev };
+    onMutate: (input) => {
+      prevEmailRef.current = displayEmail;
+      setDisplayEmail(input.email);
     },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.prev) {
-        utils.users.list.setData(queryInput, ctx.prev);
-      }
-      setEditValue(prevValueRef.current);
-      setError(_err.message);
-      const timer = setTimeout(() => setError(null), 4000);
-      return () => clearTimeout(timer);
+    onSuccess: (data) => {
+      setDisplayEmail(data.email);
     },
-    onSettled: () => {
-      void utils.users.list.invalidate(queryInput);
+    onError: (_err) => {
+      setDisplayEmail(prevEmailRef.current);
+      toast.error('Failed to update email', { description: _err.message });
     },
   });
 
   const startEdit = () => {
+    setEditValue(displayEmail);
     setIsEditing(true);
-    setError(null);
   };
 
   const cancelEdit = () => {
-    setEditValue(user.email);
+    setEditValue(displayEmail);
     setIsEditing(false);
   };
 
   const saveEdit = () => {
     if (!isEditing) return;
     setIsEditing(false);
-    if (editValue.trim() === user.email) return;
+    if (editValue.trim() === displayEmail) return;
     mutation.mutate({ id: user.id, email: editValue.trim() });
   };
 
@@ -74,14 +56,13 @@ export function useInlineEdit(user: User, queryInput: UsersListInput) {
   };
 
   return {
+    displayEmail,
     editValue,
     setEditValue,
     isEditing,
     startEdit,
-    cancelEdit,
     saveEdit,
     handleKeyDown,
-    error,
     isPending: mutation.isPending,
   };
 }

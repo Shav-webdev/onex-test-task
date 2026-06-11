@@ -2,7 +2,8 @@
 
 import { useQueryStates } from 'nuqs';
 import { usersSearchParamsParsers, type SortField } from '@/shared/lib/search-params';
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/shared/lib/utils';
+import { TableHead } from '@/shared/ui/table';
 
 type Props = {
   field: SortField;
@@ -11,33 +12,34 @@ type Props = {
 };
 
 export function SortableHeader({ field, label, className }: Props) {
-  const [{ sortBy, sortDir }, setParams] = useQueryStates(usersSearchParamsParsers);
+  const [{ sortBy, sortDir }, setParams] = useQueryStates(usersSearchParamsParsers, { shallow: false });
 
   const isActive = sortBy === field;
   const nextDir = isActive && sortDir === 'asc' ? 'desc' : 'asc';
 
   return (
-    <th
+    <TableHead
       className={cn(
-        'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide',
         'cursor-pointer select-none whitespace-nowrap group',
-        'hover:bg-gray-100 transition-colors duration-100',
-        isActive ? 'text-blue-600' : 'text-gray-500',
+        'hover:bg-muted/50 transition-colors duration-100',
+        isActive ? 'text-primary' : 'text-muted-foreground',
         className,
       )}
       onClick={() => void setParams({ sortBy: field, sortDir: nextDir, page: 1 })}
     >
-      <span className="flex items-center gap-1">
+      <span className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide">
         {label}
         <span
           className={cn(
             'text-xs',
-            isActive ? 'text-blue-500' : 'text-gray-300 group-hover:text-gray-400',
+            isActive
+              ? 'text-primary'
+              : 'text-muted-foreground/40 group-hover:text-muted-foreground/60',
           )}
         >
           {isActive ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
         </span>
       </span>
-    </th>
+    </TableHead>
   );
 }

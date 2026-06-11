@@ -2,7 +2,7 @@
 
 import { useQueryStates } from 'nuqs';
 import { usersSearchParamsParsers } from '@/shared/lib/search-params';
-import { cn } from '@/shared/lib/cn';
+import { Button } from '@/shared/ui/button';
 
 type Props = {
   total: number;
@@ -10,71 +10,54 @@ type Props = {
 };
 
 export function UsersPagination({ total, pageCount }: Props) {
-  const [{ page }, setParams] = useQueryStates(usersSearchParamsParsers);
+  const [{ page }, setParams] = useQueryStates(usersSearchParamsParsers, { shallow: false });
 
   const goTo = (p: number) => void setParams({ page: p });
 
   return (
     <div className="flex items-center justify-between pt-4">
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-muted-foreground">
         {total} {total === 1 ? 'user' : 'users'} total
       </p>
       <nav className="flex items-center gap-1" aria-label="Pagination">
-        <PageButton
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={() => goTo(page - 1)}
           disabled={page <= 1}
           aria-label="Previous page"
         >
           ‹
-        </PageButton>
+        </Button>
 
         {buildPageRange(page, pageCount).map((p, i) =>
           p === 'ellipsis' ? (
-            <span key={`e${i}`} className="px-2 text-gray-400 text-sm select-none">
+            <span key={`e${i}`} className="px-2 text-muted-foreground text-sm select-none">
               …
             </span>
           ) : (
-            <PageButton key={p} active={p === page} onClick={() => goTo(p)}>
+            <Button
+              key={p}
+              variant={p === page ? 'default' : 'ghost'}
+              size="icon-sm"
+              onClick={() => goTo(p)}
+            >
               {p}
-            </PageButton>
+            </Button>
           ),
         )}
 
-        <PageButton
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={() => goTo(page + 1)}
           disabled={page >= pageCount}
           aria-label="Next page"
         >
           ›
-        </PageButton>
+        </Button>
       </nav>
     </div>
-  );
-}
-
-type PageButtonProps = {
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  active?: boolean;
-  'aria-label'?: string;
-};
-
-function PageButton({ children, onClick, disabled, active, 'aria-label': ariaLabel }: PageButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={ariaLabel}
-      className={cn(
-        'min-w-[2rem] h-8 rounded-lg px-2 text-sm font-medium transition-colors',
-        active ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100',
-        (disabled) && 'pointer-events-none opacity-40',
-      )}
-    >
-      {children}
-    </button>
   );
 }
 
