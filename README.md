@@ -45,9 +45,8 @@ src/
 ├── app/           # Next.js App Router — layout, page, route handlers, global providers
 │   ├── providers/ # App-level providers (ThemeProvider)
 │   └── _trpc/    # tRPC client provider
-├── pages/         # Route-level compositions (assemble widgets/features into a view)
-│   └── users/
 ├── widgets/       # Self-contained UI blocks composed from features and entities
+│   ├── users-view/
 │   └── users-table/
 ├── features/      # User interactions and business scenarios
 │   ├── user-inline-edit/

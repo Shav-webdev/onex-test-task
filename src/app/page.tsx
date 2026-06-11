@@ -1,6 +1,6 @@
 import { searchParamsCache, PAGE_SIZE } from '@/shared/lib/search-params';
 import { getServerCaller } from '@/server';
-import { UsersView } from '@/pages/users';
+import { UsersView } from '@/widgets/users-view';
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
