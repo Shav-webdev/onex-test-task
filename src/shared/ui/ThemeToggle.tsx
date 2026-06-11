@@ -29,7 +29,11 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    return <Button variant="ghost" size="icon" aria-label="Toggle theme" disabled><Monitor /></Button>;
+    return (
+      <Button variant="ghost" size="icon" aria-label="Toggle theme" disabled>
+        <Monitor />
+      </Button>
+    );
   }
 
   const current = (THEMES.includes(theme as Theme) ? theme : 'system') as Theme;
@@ -37,12 +41,7 @@ export function ThemeToggle() {
   const Icon = ICONS[current];
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(next)}
-      aria-label={LABELS[current]}
-    >
+    <Button variant="ghost" size="icon" onClick={() => setTheme(next)} aria-label={LABELS[current]}>
       <Icon />
     </Button>
   );

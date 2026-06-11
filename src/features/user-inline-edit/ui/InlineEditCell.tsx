@@ -47,10 +47,10 @@ export function InlineEditCell({ user }: Props) {
         disabled={isPending}
         onClick={startEdit}
         title="Click to edit email"
-        className="h-auto px-1 py-0.5 -ml-1 justify-start text-sm font-normal text-foreground"
+        className="text-foreground -ml-1 h-auto justify-start px-1 py-0.5 text-sm font-normal"
       >
         {displayEmail}
-        <Pencil className="size-3 text-muted-foreground/40 group-hover/button:text-primary/60 shrink-0" />
+        <Pencil className="text-muted-foreground/40 group-hover/button:text-primary/60 size-3 shrink-0" />
       </Button>
     </TableCell>
   );

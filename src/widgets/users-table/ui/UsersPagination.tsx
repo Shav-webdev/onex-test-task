@@ -16,7 +16,7 @@ export function UsersPagination({ total, pageCount }: Props) {
 
   return (
     <div className="flex items-center justify-between pt-4">
-      <p className="text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-xs">
         {total} {total === 1 ? 'user' : 'users'} total
       </p>
       <nav className="flex items-center gap-1" aria-label="Pagination">
@@ -32,7 +32,7 @@ export function UsersPagination({ total, pageCount }: Props) {
 
         {buildPageRange(page, pageCount).map((p, i) =>
           p === 'ellipsis' ? (
-            <span key={`e${i}`} className="px-2 text-muted-foreground text-sm select-none">
+            <span key={`e${i}`} className="text-muted-foreground px-2 text-sm select-none">
               …
             </span>
           ) : (

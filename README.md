@@ -15,17 +15,17 @@ A paginated, sortable, filterable users table with inline editing, built with Ne
 
 ## Stack
 
-| Concern | Library |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Type-safe API | tRPC v11 |
-| Data fetching & caching | TanStack Query v5 |
-| Validation | Zod v4 |
-| URL state | nuqs v2 |
-| Styling | Tailwind CSS v4 |
-| UI primitives | shadcn/ui |
-| Notifications | Sonner |
-| Theme | next-themes |
+| Concern                 | Library                 |
+| ----------------------- | ----------------------- |
+| Framework               | Next.js 16 (App Router) |
+| Type-safe API           | tRPC v11                |
+| Data fetching & caching | TanStack Query v5       |
+| Validation              | Zod v4                  |
+| URL state               | nuqs v2                 |
+| Styling                 | Tailwind CSS v4         |
+| UI primitives           | shadcn/ui               |
+| Notifications           | Sonner                  |
+| Theme                   | next-themes             |
 
 ## Getting started
 

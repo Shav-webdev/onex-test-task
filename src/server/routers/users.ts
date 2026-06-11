@@ -1,9 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import {
-  DummyJsonUsersResponseSchema,
-  UserUpdateInputSchema,
-} from '@/entities/user';
+import { DummyJsonUsersResponseSchema, UserUpdateInputSchema } from '@/entities/user';
 import { SORT_FIELDS, SORT_DIRS } from '@/shared/lib/search-params';
 import { router, publicProcedure } from '../trpc';
 
@@ -46,9 +43,7 @@ export const usersRouter = router({
     if (filter?.trim() && sortBy) {
       users = [...users].sort((a, b) => {
         const cmp =
-          sortBy === 'age'
-            ? a.age - b.age
-            : String(a[sortBy]).localeCompare(String(b[sortBy]));
+          sortBy === 'age' ? a.age - b.age : String(a[sortBy]).localeCompare(String(b[sortBy]));
         return sortDir === 'desc' ? -cmp : cmp;
       });
     }
