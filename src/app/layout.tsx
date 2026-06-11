@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Toaster } from 'sonner';
 import { TRPCProvider } from './_trpc/provider';
-import { ThemeProvider } from './_providers/ThemeProvider';
+import { ThemeProvider } from './providers/ThemeProvider';
 import './globals.css';
 
 const jakarta = Plus_Jakarta_Sans({

@@ -1,24 +1,17 @@
-# Users Table — Onex Test Task
+# Users Table
 
-A paginated, sortable, filterable users table with inline editing built with Next.js 16 App Router.
-
-## Setup
-
-```bash
-pnpm install
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
+A paginated, sortable, filterable users table with inline editing, built with Next.js 16 App Router and tRPC.
 
 ## Features
 
-- **Paginated table** — Name, Email (editable), Age, Phone from [DummyJSON](https://dummyjson.com/users)
-- **Sorting** — click any column header (Name, Age) to toggle asc/desc
-- **Debounced search** — filters by name or email, 350 ms debounce
-- **URL as source of truth** — `?page=2&sortBy=age&sortDir=desc&filter=john` is fully shareable and survives refresh/back-forward
-- **Server-side prefetch** — the initial render hits DummyJSON on the server; the client gets hydrated data with no loading flash
-- **Inline email edit** — click any email cell, edit, press Enter or blur to save; Escape cancels; 30 % of saves are intentionally failed by the server to demonstrate optimistic rollback + error recovery
+- **Paginated table** — displays Name, Email (inline-editable), Age, and Phone sourced from [DummyJSON](https://dummyjson.com/users)
+- **Column sorting** — click any column header to toggle ascending/descending order
+- **Debounced search** — filters by name or email with a 350 ms debounce
+- **Inline email editing** — click an email cell to edit in place; save with Enter or blur, cancel with Escape
+- **Optimistic updates** — edits apply instantly in the UI and roll back automatically on failure
+- **Simulated failures** — 30 % of save requests intentionally fail on the server to demonstrate error recovery via toast notification
+- **Shareable URLs** — all table state (page, sort, filter) lives in the URL and survives refresh and browser navigation
+- **Dark mode** — light / dark / system theme toggle with no flash on load
 
 ## Stack
 
@@ -30,41 +23,64 @@ Open [http://localhost:3000](http://localhost:3000).
 | Validation | Zod v4 |
 | URL state | nuqs v2 |
 | Styling | Tailwind CSS v4 |
+| UI primitives | shadcn/ui |
+| Notifications | Sonner |
+| Theme | next-themes |
+
+## Getting started
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
 
 ## Architecture
 
-The project follows [Feature-Sliced Design](https://feature-sliced.design/) (FSD):
+The project follows [Feature-Sliced Design](https://feature-sliced.design/) (FSD). Layers are ordered from most app-specific (top) to most reusable (bottom); a layer may only import from layers below it.
 
 ```
 src/
-  app/          → Next.js App Router (layout, page, providers, tRPC route)
-  pages/        → Route-level compositions (UsersPage client shell)
-  widgets/      → Self-contained UI blocks (UsersTable, UsersPagination, …)
-  features/     → User interactions (filter, sort, inline-edit)
-  entities/     → Business objects (User schema & types)
-  shared/       → Primitives (cn, search-param parsers, tRPC client setup)
-  server/       → tRPC router & procedures (backend, outside FSD layers)
+├── app/           # Next.js App Router — layout, page, route handlers, global providers
+│   ├── providers/ # App-level providers (ThemeProvider)
+│   └── _trpc/    # tRPC client provider
+├── pages/         # Route-level compositions (assemble widgets/features into a view)
+│   └── users/
+├── widgets/       # Self-contained UI blocks composed from features and entities
+│   └── users-table/
+├── features/      # User interactions and business scenarios
+│   ├── user-inline-edit/
+│   ├── users-filter/
+│   └── users-sort/
+├── entities/      # Business objects — types, schemas, display components
+│   └── user/
+├── shared/        # Generic, domain-agnostic utilities
+│   ├── api/       # tRPC client, TanStack Query setup
+│   ├── lib/       # URL parsers, hooks (useDebounce), pure utils
+│   └── ui/        # Primitive components (Button, Input, Table, ThemeToggle, …)
+└── server/        # tRPC router and procedures (backend, outside FSD layers)
 ```
 
-### Key decisions
+## Key design decisions
 
-**Server component for the initial page**
-`app/page.tsx` is an async Server Component that reads `searchParams`, calls the tRPC server-side caller directly (no HTTP round-trip), and wraps the tree in `<HydrateClient>`. The client shell (`UsersPage`) finds the data already in the TanStack Query cache, so the first render never shows a skeleton.
+**Server component for the initial render**
+`app/page.tsx` is an async Server Component. It reads `searchParams`, calls the tRPC server-side caller directly (no HTTP round-trip), and passes the result down to `UsersView`. The client receives fully-hydrated data — no loading skeleton on first paint.
 
-**nuqs for URL state**
-Rather than `useState` or `useSearchParams` + manual string parsing, every piece of table state lives in the URL via nuqs parsers. `createSearchParamsCache` parses server-side for the prefetch; `useQueryStates` syncs the same parsers on the client. Back/forward history, sharing, and SSR all work without any extra code.
+**URL as the single source of truth**
+All table state (page, sort field, sort direction, filter) lives in the URL via nuqs parsers. `createSearchParamsCache` parses the URL server-side for the prefetch; `useQueryStates` syncs the same parsers on the client. Shareable links, back/forward navigation, and SSR all work with no extra code.
 
-**tRPC over raw fetch**
-All data access goes through a tRPC procedure. The Zod input schema on the procedure is the single definition for what the client is allowed to send — no duplicated validation, and the TypeScript types flow through automatically via `RouterInputs` / `RouterOutputs`.
+**tRPC for end-to-end type safety**
+All data access flows through a tRPC procedure. The Zod input schema on each procedure is the single definition of what the client may send — no duplicated validation, and TypeScript types flow through automatically via `RouterInputs` / `RouterOutputs`.
 
-**Optimistic updates with rollback**
-`useInlineEdit` uses TanStack Query's `onMutate` / `onError` pattern: the cache is patched immediately on save, and rolled back if the server returns an error. A 30 % simulated failure rate makes the rollback path easy to trigger during review.
+**Optimistic updates with automatic rollback**
+`useInlineEdit` uses `onMutate` to patch the UI immediately and stash the previous value. `onError` rolls back to the stashed value and fires a `sonner` toast. The 30 % simulated failure rate makes this path easy to observe during review.
 
-**DummyJSON sorting/search gap**
-The DummyJSON `/users/search` endpoint does not accept sort parameters. When a filter is active, the tRPC procedure sorts the results in-process after fetching. This is documented in the procedure with a comment.
+**In-process sort for filtered results**
+The DummyJSON `/users/search` endpoint does not accept sort parameters. When both a filter and a sort are active, the tRPC procedure fetches the filtered page and sorts the results in Node.js. This is correct for DummyJSON's dataset (≤ 208 users) but would require server-side sort support for larger datasets.
 
-### Tradeoffs
+## Known limitations
 
-- **No real persistence** — the `users.update` procedure returns the input unchanged (DummyJSON is read-only). Optimistic updates and rollback are fully wired up, but a page refresh shows the original data from DummyJSON.
-- **No auth** — the tRPC context is empty `{}`. Adding auth would mean threading a session into `createContext` and checking it in procedures.
-- **Client-sort on search** — sorting search results in Node.js is fast for DummyJSON's dataset (208 users max), but would need server-side support for larger datasets.
+- **No persistence** — `users.update` echoes the input back unchanged (DummyJSON is read-only). A page refresh restores the original data.
+- **No authentication** — the tRPC context is empty. Adding auth would mean threading a session into `createContext` and checking it in each procedure.
+- **Client-side sort on filtered pages** — sorting filtered results happens in the Node.js procedure, not in the data source. This is a known trade-off of using a read-only external API.
